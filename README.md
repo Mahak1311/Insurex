@@ -1,4 +1,4 @@
-# ClearCare - Healthcare Insurance Clarity Platform
+# Insurex - Healthcare Insurance Clarity Platform
 
 A modern, India-focused healthcare fintech web application that helps users understand their health insurance coverage for hospital bills. Built for a hackathon MVP.
 
@@ -123,7 +123,7 @@ npm run preview
 ## Project Structure
 
 ```
-clearcare-healthcare-fintech/
+insurex-healthcare-fintech/
 ├── src/
 │   ├── components/
 │   │   ├── Layout/
@@ -197,7 +197,7 @@ MIT License - Built for hackathon demonstration
 
 ## Contact
 
-For questions or demo requests, contact the ClearCare team.
+For questions or demo requests, contact the Insurex team.
 
 ---
 

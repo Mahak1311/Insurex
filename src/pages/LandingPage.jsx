@@ -87,7 +87,7 @@ function LandingPage() {
       {/* How It Works */}
       <section className="how-it-works">
         <div className="container">
-          <h2 className="section-title">How ClearCare Works</h2>
+          <h2 className="section-title">How Insurex Works</h2>
           <p className="section-subtitle">Three simple steps to complete clarity</p>
           <div className="steps-grid">
             <div className="step-card">
@@ -174,7 +174,7 @@ function LandingPage() {
           <div className="footer-content">
             <div className="footer-brand">
               <Shield size={28} />
-              <span>ClearCare</span>
+              <span>Insurex</span>
             </div>
             <p className="footer-text">
               Making healthcare insurance transparent for every Indian family.

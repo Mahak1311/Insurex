@@ -30,7 +30,7 @@ function Navbar() {
       <div className="navbar-container">
         <Link to="/" className="navbar-brand">
           <Shield className="brand-icon" />
-          <span className="brand-text">ClearCare</span>
+          <span className="brand-text">Insurex</span>
         </Link>
 
         <button 

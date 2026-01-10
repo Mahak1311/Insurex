@@ -33,7 +33,7 @@ function SignupPage() {
         <div className="auth-card">
           <Link to="/" className="auth-logo">
             <Shield size={40} />
-            <span>ClearCare</span>
+            <span>Insurex</span>
           </Link>
 
           <h1 className="auth-title">Create Account</h1>

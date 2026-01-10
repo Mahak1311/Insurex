@@ -226,7 +226,7 @@ function FamilyPolicyPage() {
           <div className="savings-header">
             <div>
               <h2 className="section-title">Savings Tracker</h2>
-              <p className="savings-subtitle">Money saved by using ClearCare</p>
+              <p className="savings-subtitle">Money saved by using Insurex</p>
             </div>
             <div className="savings-badge">
               <TrendingUp size={24} />
