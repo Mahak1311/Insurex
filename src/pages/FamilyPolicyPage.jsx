@@ -1,64 +1,16 @@
-import { Users, AlertTriangle, CheckCircle, Plus, TrendingUp } from 'lucide-react'
+import { useState } from 'react'
+import { Users, AlertTriangle, CheckCircle, Plus, TrendingUp, UserPlus } from 'lucide-react'
 import './FamilyPolicyPage.css'
 
 function FamilyPolicyPage() {
-  const familyMembers = [
-    {
-      id: 1,
-      name: 'Rajesh Kumar',
-      relation: 'Self',
-      age: 42,
-      coverage: 500000,
-      used: 45000,
-      remaining: 455000,
-      status: 'active',
-      claims: 1
-    },
-    {
-      id: 2,
-      name: 'Priya Kumar',
-      relation: 'Spouse',
-      age: 38,
-      coverage: 500000,
-      used: 0,
-      remaining: 500000,
-      status: 'active',
-      claims: 0
-    },
-    {
-      id: 3,
-      name: 'Aarav Kumar',
-      relation: 'Son',
-      age: 12,
-      coverage: 500000,
-      used: 12000,
-      remaining: 488000,
-      status: 'active',
-      claims: 1
-    },
-    {
-      id: 4,
-      name: 'Anita Sharma (Mother)',
-      relation: 'Parent',
-      age: 65,
-      coverage: 300000,
-      used: 285000,
-      remaining: 15000,
-      status: 'warning',
-      claims: 3
-    }
-  ]
+  const [familyMembers, setFamilyMembers] = useState([])
 
-  const gaps = [
-    'Critical illness coverage missing for senior member',
-    'Maternity coverage not included in current policy',
-    'Dental and vision care not covered'
-  ]
+  const gaps = []
+  const overlaps = []
 
-  const overlaps = [
-    'Duplicate hospitalization coverage with employer insurance',
-    'Consider consolidating policies for better premium'
-  ]
+  const totalCoverage = familyMembers.reduce((sum, member) => sum + member.coverage, 0)
+  const totalUsed = familyMembers.reduce((sum, member) => sum + member.used, 0)
+  const totalClaims = familyMembers.reduce((sum, member) => sum + member.claims, 0)
 
   return (
     <div className="family-policy-page">
@@ -94,7 +46,7 @@ function FamilyPolicyPage() {
             </div>
             <div className="summary-content">
               <div className="summary-label">Total Coverage</div>
-              <div className="summary-value">₹18L</div>
+              <div className="summary-value">₹{totalCoverage > 0 ? (totalCoverage / 100000).toFixed(1) + 'L' : '0'}</div>
             </div>
           </div>
 
@@ -104,8 +56,8 @@ function FamilyPolicyPage() {
             </div>
             <div className="summary-content">
               <div className="summary-label">Amount Used</div>
-              <div className="summary-value">₹3.42L</div>
-              <div className="summary-percent">19% utilized</div>
+              <div className="summary-value">₹{totalUsed > 0 ? (totalUsed / 100000).toFixed(2) + 'L' : '0'}</div>
+              <div className="summary-percent">{totalCoverage > 0 ? Math.round((totalUsed / totalCoverage) * 100) : 0}% utilized</div>
             </div>
           </div>
 
@@ -115,7 +67,7 @@ function FamilyPolicyPage() {
             </div>
             <div className="summary-content">
               <div className="summary-label">Active Claims</div>
-              <div className="summary-value">5</div>
+              <div className="summary-value">{totalClaims}</div>
               <div className="summary-percent">This year</div>
             </div>
           </div>
@@ -124,8 +76,21 @@ function FamilyPolicyPage() {
         {/* Member Cards */}
         <div className="members-section">
           <h2 className="section-title">Family Members</h2>
-          <div className="members-grid">
-            {familyMembers.map(member => (
+          {familyMembers.length === 0 ? (
+            <div className="empty-state card">
+              <UserPlus size={64} className="empty-icon" />
+              <h3 className="empty-title">No Family Members Added Yet</h3>
+              <p className="empty-description">
+                Start by adding your family members to track their insurance coverage and claims in one place.
+              </p>
+              <button className="btn btn-primary btn-large">
+                <Plus size={20} />
+                Add Your First Member
+              </button>
+            </div>
+          ) : (
+            <div className="members-grid">
+              {familyMembers.map(member => (
               <div key={member.id} className={`member-card card ${member.status}`}>
                 <div className="member-header">
                   <div className="member-avatar">
@@ -180,10 +145,13 @@ function FamilyPolicyPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
 
         {/* Gaps and Overlaps */}
+        {(gaps.length > 0 || overlaps.length > 0) && (
         <div className="insights-grid">
+          {gaps.length > 0 && (
           <div className="insights-card card gaps">
             <h3 className="insights-title">
               <AlertTriangle size={20} />
@@ -201,7 +169,9 @@ function FamilyPolicyPage() {
               Get Coverage Recommendations
             </button>
           </div>
+          )}
 
+          {overlaps.length > 0 && (
           <div className="insights-card card overlaps">
             <h3 className="insights-title">
               <CheckCircle size={20} />
@@ -219,9 +189,12 @@ function FamilyPolicyPage() {
               Optimize Policies
             </button>
           </div>
+          )}
         </div>
+        )}
 
         {/* Savings Tracker */}
+        {familyMembers.length > 0 && (
         <div className="savings-card card">
           <div className="savings-header">
             <div>
@@ -261,6 +234,7 @@ function FamilyPolicyPage() {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   )
