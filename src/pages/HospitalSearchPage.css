@@ -1,11 +1,42 @@
 .hospital-search-page {
   padding: 40px 0 80px;
   min-height: calc(100vh - 70px);
+  animation: fadeInUp 0.8s ease;
+  background: linear-gradient(135deg, rgba(240, 247, 255, 0.8) 0%, rgba(224, 242, 254, 0.5) 100%);
 }
 
 .search-header {
   text-align: center;
   margin-bottom: 40px;
+  animation: slideInDown 0.6s ease;
+}
+
+.page-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 12px 0;
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-subtitle {
+  font-size: 18px;
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .search-bar-section {
@@ -14,11 +45,30 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   margin-bottom: 32px;
+  animation: slideInUp 0.7s ease 0.2s both;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  transition: var(--transition);
+}
+
+.search-bar-section:hover {
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(59, 130, 246, 0.15);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .search-input-wrapper {
   position: relative;
   margin-bottom: 20px;
+  animation: fadeInUp 0.6s ease 0.3s both;
 }
 
 .search-input-wrapper svg {
@@ -27,6 +77,7 @@
   top: 50%;
   transform: translateY(-50%);
   color: var(--color-text-light);
+  transition: var(--transition);
 }
 
 .search-input {
@@ -36,18 +87,31 @@
   border-radius: var(--radius-md);
   font-size: 16px;
   transition: var(--transition);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(240, 247, 255, 0.5) 100%);
 }
 
 .search-input:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 0 15px rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.search-input-wrapper:focus-within svg {
+  color: #3b82f6;
+  transform: scale(1.1);
+}
 }
 
 .search-filters {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  animation: fadeInUp 0.6s ease 0.4s both;
 }
 
 .filter-group {
@@ -55,12 +119,37 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: var(--color-bg);
+  background: linear-gradient(135deg, rgba(240, 247, 255, 0.8) 0%, rgba(224, 242, 254, 0.8) 100%);
   border-radius: var(--radius-sm);
-  border: 2px solid var(--color-border);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  transition: var(--transition);
+  animation: fadeInUp 0.5s ease 0.5s both;
+}
+
+.filter-group:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
 }
 
 .filter-group svg {
+  color: var(--color-text-light);
+}
+
+.filter-input {
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  padding: 4px 0;
+  width: 150px;
+}
+
+.filter-input:focus {
+  outline: none;
+}
+
+.filter-input::placeholder {
   color: var(--color-text-light);
 }
 
@@ -99,6 +188,35 @@
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: white;
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(240, 247, 255, 0.8) 0%, rgba(224, 242, 254, 0.8) 100%);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  transition: var(--transition);
+  animation: fadeInUp 0.5s ease 0.5s both;
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  border-color: #3b82f6;
+  color: white;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
 }
 
 .search-results {
@@ -133,6 +251,42 @@
 .hospital-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-xl);
+.hospital-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+.hospital-card {
+  transition: var(--transition);
+  animation: scaleIn 0.5s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.hospital-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.hospital-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+}
+
+.hospital-card:hover::before {
+  transform: scaleX(1);
+}
 }
 
 .hospital-header {
@@ -152,6 +306,16 @@
   font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: 8px;
+.hospital-name {
+  font-size: 20px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  transition: var(--transition);
+}
 }
 
 .hospital-meta {
@@ -176,6 +340,27 @@
 .hospital-type.private {
   background: #ede9fe;
   color: #6b21a8;
+.hospital-type {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: var(--transition);
+  animation: scaleIn 0.5s ease 0.3s both;
+}
+
+.hospital-type.government {
+  background: linear-gradient(135deg, #dbeafe 0%, #bae6fd 100%);
+  color: #1e40af;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+}
+
+.hospital-type.private {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  color: #6b21a8;
+  box-shadow: 0 4px 12px rgba(107, 33, 168, 0.1);
+}
 }
 
 .hospital-rating {
@@ -195,6 +380,20 @@
   font-weight: 600;
   font-size: 14px;
   flex-shrink: 0;
+.cashless-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  animation: slideInRight 0.5s ease;
+}
 }
 
 .hospital-details {
@@ -250,6 +449,24 @@
 .info-card {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   border: 2px solid #bae6fd;
+.info-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%, #f0f9ff 100%);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  animation: slideInUp 0.7s ease 0.5s both;
+  position: relative;
+  overflow: hidden;
+}
+
+.info-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  animation: shimmer 3s infinite;
+}
 }
 
 .info-card h3 {
@@ -316,4 +533,70 @@
   .results-header .btn {
     width: 100%;
   }
+}
+
+/* Loading and empty states */
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.loading-state .spinner {
+  animation: spin 1s linear infinite;
+  color: var(--color-primary);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state p {
+  color: var(--color-text-light);
+  font-size: 16px;
+}
+
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--color-text-light);
+}
+
+.empty-state svg {
+  opacity: 0.3;
+}
+
+.empty-state p {
+  font-size: 16px;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-light);
 }

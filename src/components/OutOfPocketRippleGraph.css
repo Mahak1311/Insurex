@@ -1,0 +1,332 @@
+/* Out-of-Pocket Ripple Graph Styles */
+.ripple-graph-container {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 32px 0;
+  border: 2px solid #e5e7eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-graph-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.ripple-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.ripple-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ripple-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.legend-dot.green { background: #10b981; }
+.legend-dot.yellow { background: #f59e0b; }
+.legend-dot.orange { background: #f97316; }
+.legend-dot.red { background: #ef4444; }
+
+/* Graph Empty State */
+.ripple-graph-empty {
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  border: 2px dashed #bae6fd;
+  margin: 32px 0;
+}
+
+.ripple-graph-empty p {
+  margin: 0;
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Custom Tooltip */
+.ripple-tooltip {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 2px solid #e5e7eb;
+  min-width: 200px;
+  animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.tooltip-header strong {
+  font-size: 14px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.spike-badge {
+  background: #fef2f2;
+  color: #ef4444;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  border: 1px solid #ef4444;
+  animation: pulseBadge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseBadge {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.tooltip-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.tooltip-explanation {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.tooltip-final {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 12px;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+/* Spike Animation */
+.spike-dot {
+  animation: spikeGrow 1.5s ease-in-out infinite;
+}
+
+.spike-pulse {
+  animation: spikePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spikeGrow {
+  0%, 100% {
+    r: 8;
+  }
+  50% {
+    r: 10;
+  }
+}
+
+@keyframes spikePulse {
+  0% {
+    r: 12;
+    opacity: 0.4;
+  }
+  50% {
+    r: 18;
+    opacity: 0;
+  }
+  100% {
+    r: 12;
+    opacity: 0.4;
+  }
+}
+
+/* Insights Section */
+.ripple-insights {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.insight-alert {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  border-left: 4px solid;
+  animation: slideInRight 0.4s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.insight-alert.danger {
+  background: #fef2f2;
+  border-left-color: #ef4444;
+}
+
+.insight-alert.warning {
+  background: #fff7ed;
+  border-left-color: #f59e0b;
+}
+
+.insight-alert.success {
+  background: #f0fdf4;
+  border-left-color: #10b981;
+}
+
+.alert-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.insight-alert strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.insight-alert p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* Recharts customization */
+.recharts-cartesian-axis-tick-value {
+  font-size: 12px !important;
+  fill: #6b7280 !important;
+}
+
+.recharts-tooltip-cursor {
+  fill: rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ripple-graph-container {
+    padding: 20px 16px;
+  }
+
+  .ripple-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ripple-legend {
+    gap: 12px;
+  }
+
+  .legend-item {
+    font-size: 12px;
+  }
+
+  .ripple-header h3 {
+    font-size: 18px;
+  }
+
+  .tooltip-amount {
+    font-size: 20px;
+  }
+
+  .ripple-insights {
+    margin-top: 20px;
+  }
+
+  .insight-alert {
+    padding: 12px;
+  }
+
+  .alert-icon {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ripple-legend {
+    width: 100%;
+  }
+
+  .legend-item {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .ripple-graph-empty {
+    padding: 40px 16px;
+  }
+}

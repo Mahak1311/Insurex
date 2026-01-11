@@ -1,67 +1,177 @@
-import { useState } from 'react'
-import { Search, MapPin, Filter, CheckCircle, Building2, Phone, Navigation } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, MapPin, Filter, CheckCircle, Building2, Phone, Navigation, Loader2 } from 'lucide-react'
 import './HospitalSearchPage.css'
+
+const fallbackHospitalsByPincode = {
+  '110001': [
+    {
+      name: 'Delhi Heart & Lung Institute',
+      address: '3, MM Rd, Ranjit Nagar, Delhi 110001',
+      location: { lat: 28.6406, lng: 77.1926 },
+      city: 'New Delhi',
+      distanceKm: 2.4,
+      rating: 4.3,
+      phone: '+91-11-42888888',
+      specialties: ['Cardiology', 'Pulmonology'],
+      cashlessLikely: true,
+      type: 'Specialty'
+    },
+    {
+      name: 'BLK-Max Super Specialty Hospital',
+      address: 'Pusa Road, Karol Bagh, Delhi 110001',
+      location: { lat: 28.6431, lng: 77.189 },
+      city: 'New Delhi',
+      distanceKm: 3.1,
+      rating: 4.5,
+      phone: '+91-11-30403040',
+      specialties: ['Oncology', 'Orthopedics', 'Neurosciences'],
+      cashlessLikely: true,
+      type: 'Super Specialty'
+    },
+    {
+      name: 'Sir Ganga Ram Hospital',
+      address: 'Rajinder Nagar, New Delhi 110001',
+      location: { lat: 28.6409, lng: 77.1895 },
+      city: 'New Delhi',
+      distanceKm: 3.6,
+      rating: 4.4,
+      phone: '+91-11-25750000',
+      specialties: ['Multi-specialty'],
+      cashlessLikely: true,
+      type: 'Multi Specialty'
+    },
+    {
+      name: 'Dr. Ram Manohar Lohia Hospital',
+      address: 'Baba Kharak Singh Marg, Connaught Place, Delhi 110001',
+      location: { lat: 28.626, lng: 77.2069 },
+      city: 'New Delhi',
+      distanceKm: 1.8,
+      rating: 4.2,
+      phone: '+91-11-23404262',
+      specialties: ['General Medicine', 'Emergency'],
+      cashlessLikely: true,
+      type: 'Government'
+    }
+  ]
+}
+
+const buildDirectionsUrl = (hospital) => {
+  const lat = hospital?.location?.lat ?? hospital?.location?.latitude
+  const lng = hospital?.location?.lng ?? hospital?.location?.longitude
+  const destination = lat && lng
+    ? `${lat},${lng}`
+    : encodeURIComponent(hospital?.address || hospital?.name || 'hospital')
+  return `https://www.google.com/maps/dir/?api=1&destination=${destination}`
+}
+
+const buildDetailsUrl = (hospital) => {
+  if (hospital?.placeId) {
+    return `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${hospital.placeId}`
+  }
+  const query = encodeURIComponent(`${hospital?.name || 'Hospital'} ${hospital?.address || ''}`.trim())
+  return `https://www.google.com/maps/search/?api=1&query=${query}`
+}
 
 function HospitalSearchPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
-    city: '',
+    pincode: '',
     cashless: false,
     specialty: ''
   })
+  const [hospitals, setHospitals] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [pincodeError, setPincodeError] = useState('')
+  const [apiKey, setApiKey] = useState('')
 
-  const hospitals = [
-    {
-      id: 1,
-      name: 'AIIMS Delhi',
-      type: 'Government',
-      city: 'Delhi',
-      cashless: true,
-      specialties: ['Cardiology', 'Neurology', 'Orthopedics'],
-      distance: '2.5 km',
-      phone: '+91-11-26588500',
-      rating: 4.8
-    },
-    {
-      id: 2,
-      name: 'Max Super Speciality Hospital',
-      type: 'Private',
-      city: 'Delhi',
-      cashless: true,
-      specialties: ['Cardiology', 'Oncology', 'Gastroenterology'],
-      distance: '5.2 km',
-      phone: '+91-11-26515050',
-      rating: 4.6
-    },
-    {
-      id: 3,
-      name: 'Apollo Hospital',
-      type: 'Private',
-      city: 'Delhi',
-      cashless: true,
-      specialties: ['Multi-specialty'],
-      distance: '8.1 km',
-      phone: '+91-11-26825858',
-      rating: 4.7
-    },
-    {
-      id: 4,
-      name: 'Fortis Hospital',
-      type: 'Private',
-      city: 'Delhi',
-      cashless: false,
-      specialties: ['Cardiology', 'Neurosurgery'],
-      distance: '10.3 km',
-      phone: '+91-11-40404040',
-      rating: 4.5
+  const mapHospitals = (list = []) => list.map((hospital, idx) => {
+    const location = hospital.location || {
+      lat: hospital.lat,
+      lng: hospital.lng
     }
-  ]
 
+    const distanceValue = hospital.distanceKm ?? hospital.distance
+    const distanceText = typeof distanceValue === 'number'
+      ? `${distanceValue.toFixed(1)} km`
+      : distanceValue || 'Nearby'
+
+    const specialties = Array.isArray(hospital.specialties) && hospital.specialties.length
+      ? hospital.specialties
+      : ['General Medicine']
+
+    return {
+      id: hospital.placeId || hospital.id || `${hospital.name || 'hospital'}-${idx}`,
+      name: hospital.name || 'Network Hospital',
+      type: hospital.type || 'Multi Specialty',
+      city: hospital.city || hospital.address?.split(',').slice(-2, -1)[0]?.trim() || 'Nearby',
+      distance: distanceText,
+      rating: hospital.rating || 4.3,
+      phone: hospital.phone || 'Not available',
+      specialties,
+      cashless: hospital.cashless ?? hospital.cashlessLikely ?? true,
+      address: hospital.address || hospital.vicinity || '',
+      location,
+      placeId: hospital.placeId,
+      directionsUrl: buildDirectionsUrl({ ...hospital, location }),
+      detailsUrl: buildDetailsUrl({ ...hospital, location })
+    }
+  })
+
+  const useFallbackHospitals = (pincode) => {
+    const fallback = mapHospitals(fallbackHospitalsByPincode[pincode] || [])
+    setHospitals(fallback)
+    if (fallback.length) {
+      setPincodeError('Showing sample hospitals while live lookup is unavailable.')
+    }
+  }
+
+  useEffect(() => {
+    const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+    setApiKey(key)
+  }, [])
+
+  // Fetch hospitals when pincode changes
+  useEffect(() => {
+    if (filters.pincode && /^\d{6}$/.test(filters.pincode)) {
+      fetchHospitals(filters.pincode)
+    } else if (filters.pincode && !/^\d{6}$/.test(filters.pincode)) {
+      setPincodeError('Please enter a valid 6-digit pincode')
+      setHospitals([])
+    } else {
+      setPincodeError('')
+      setHospitals([])
+    }
+  }, [filters.pincode])
+
+  const fetchHospitals = async (pincode) => {
+    setLoading(true)
+    setPincodeError('')
+    try {
+      const response = await fetch(`http://localhost:5000/api/hospitals?pincode=${pincode}`)
+      const data = await response.json()
+      const mapped = mapHospitals(data?.hospitals || [])
+      if (mapped.length) {
+        setHospitals(mapped)
+      } else {
+        useFallbackHospitals(pincode)
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error)
+      useFallbackHospitals(pincode)
+      if (!fallbackHospitalsByPincode[pincode]?.length) {
+        setPincodeError('Failed to fetch hospitals. Please try again.')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Filter hospitals by search term and cashless status
   const filteredHospitals = hospitals.filter(hospital => {
-    const matchesSearch = hospital.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCity = !filters.city || hospital.city === filters.city
+    const matchesSearch = hospital.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (hospital.specialties && hospital.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase())))
     const matchesCashless = !filters.cashless || hospital.cashless
-    return matchesSearch && matchesCity && matchesCashless
+    return matchesSearch && matchesCashless
   })
 
   return (
@@ -90,17 +200,13 @@ function HospitalSearchPage() {
           <div className="search-filters">
             <div className="filter-group">
               <MapPin size={18} />
-              <select
-                value={filters.city}
-                onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-                className="filter-select"
-              >
-                <option value="">All Cities</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Mumbai">Mumbai</option>
-                <option value="Bangalore">Bangalore</option>
-                <option value="Chennai">Chennai</option>
-              </select>
+              <input
+                type="text"
+                placeholder="Insert pincode..."
+                value={filters.pincode}
+                onChange={(e) => setFilters({ ...filters, pincode: e.target.value })}
+                className="filter-input"
+              />
             </div>
 
             <button
@@ -115,72 +221,112 @@ function HospitalSearchPage() {
 
         {/* Results */}
         <div className="search-results">
-          <div className="results-header">
-            <h2 className="results-count">
-              {filteredHospitals.length} hospitals found
-            </h2>
-            <button className="btn btn-secondary">
-              <Navigation size={18} />
-              Near Me
-            </button>
-          </div>
+          {pincodeError && (
+            <div className="error-message">
+              ⚠ {pincodeError}
+            </div>
+          )}
 
-          <div className="hospital-grid">
-            {filteredHospitals.map(hospital => (
-              <div key={hospital.id} className="hospital-card card">
-                <div className="hospital-header">
-                  <div className="hospital-info">
-                    <h3 className="hospital-name">{hospital.name}</h3>
-                    <div className="hospital-meta">
-                      <span className={`hospital-type ${hospital.type.toLowerCase()}`}>
-                        {hospital.type}
-                      </span>
-                      <span className="hospital-rating">
-                        ★ {hospital.rating}
-                      </span>
+          {loading && (
+            <div className="loading-state">
+              <Loader2 size={24} className="spinner" />
+              <p>Finding hospitals near you...</p>
+            </div>
+          )}
+
+          {!loading && filters.pincode && !pincodeError && (
+            <>
+              <div className="results-header">
+                <h2 className="results-count">
+                  {filteredHospitals.length} hospitals found
+                </h2>
+                <button className="btn btn-secondary">
+                  <Navigation size={18} />
+                  Near Me
+                </button>
+              </div>
+
+              <div className="hospital-grid">
+                {filteredHospitals.length > 0 ? (
+                  filteredHospitals.map(hospital => (
+                    <div key={hospital.id} className="hospital-card card">
+                      <div className="hospital-header">
+                        <div className="hospital-info">
+                          <h3 className="hospital-name">{hospital.name}</h3>
+                          <div className="hospital-meta">
+                            <span className={`hospital-type ${hospital.type.toLowerCase()}`}>
+                              {hospital.type}
+                            </span>
+                            <span className="hospital-rating">
+                              ★ {hospital.rating || 4.5}
+                            </span>
+                          </div>
+                        </div>
+                        {hospital.cashless && (
+                          <div className="cashless-badge">
+                            <CheckCircle size={18} />
+                            Cashless
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="hospital-details">
+                        <div className="detail-item">
+                          <MapPin size={16} />
+                          <span>{hospital.city} • {hospital.distance} away</span>
+                        </div>
+                        <div className="detail-item">
+                          <Building2 size={16} />
+                          <span>{hospital.specialties ? hospital.specialties.join(', ') : 'Multi-specialty'}</span>
+                        </div>
+                        <div className="detail-item">
+                          <Phone size={16} />
+                          <span>{hospital.phone}</span>
+                        </div>
+                      </div>
+
+                      <div className="hospital-actions">
+                        <a
+                          className="btn btn-primary"
+                          href={hospital.detailsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View Details
+                        </a>
+                        <a
+                          className="btn btn-secondary"
+                          href={hospital.directionsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Get Directions
+                        </a>
+                      </div>
+
+                      {hospital.cashless && (
+                        <div className="compliance-note">
+                          <CheckCircle size={14} />
+                          <span>Pre-authorization available for cashless treatment</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  {hospital.cashless && (
-                    <div className="cashless-badge">
-                      <CheckCircle size={18} />
-                      Cashless
-                    </div>
-                  )}
-                </div>
-
-                <div className="hospital-details">
-                  <div className="detail-item">
-                    <MapPin size={16} />
-                    <span>{hospital.city} • {hospital.distance} away</span>
-                  </div>
-                  <div className="detail-item">
-                    <Building2 size={16} />
-                    <span>{hospital.specialties.join(', ')}</span>
-                  </div>
-                  <div className="detail-item">
-                    <Phone size={16} />
-                    <span>{hospital.phone}</span>
-                  </div>
-                </div>
-
-                <div className="hospital-actions">
-                  <button className="btn btn-primary">
-                    View Details
-                  </button>
-                  <button className="btn btn-secondary">
-                    Get Directions
-                  </button>
-                </div>
-
-                {hospital.cashless && (
-                  <div className="compliance-note">
-                    <CheckCircle size={14} />
-                    <span>Pre-authorization available for cashless treatment</span>
+                  ))
+                ) : (
+                  <div className="no-results">
+                    <p>No hospitals found matching your search. Try a different pincode or search term.</p>
                   </div>
                 )}
               </div>
-            ))}
-          </div>
+            </>
+          )}
+
+          {!filters.pincode && !loading && (
+            <div className="empty-state">
+              <MapPin size={48} />
+              <p>Enter a pincode to find nearby network hospitals</p>
+            </div>
+          )}
         </div>
 
         {/* Info Card */}

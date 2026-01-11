@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { 
   Shield, 
   Upload, 
@@ -9,15 +10,91 @@ import {
   IndianRupee,
   Users,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Phone,
+  Mail,
+  MessageCircle,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Youtube
 } from 'lucide-react'
 import './LandingPage.css'
 
 function LandingPage() {
+  const [mouseX, setMouseX] = useState(0.5)
+  const [mouseY, setMouseY] = useState(0.5)
+  const [splineLoaded, setSplineLoaded] = useState(false)
+  const heroRef = useRef(null)
+
+  // Generate antigravity-style particles
+  const particles = useMemo(() => {
+    return Array.from({ length: 150 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 2 + Math.random() * 4,
+      speed: 40 + Math.random() * 110,
+      direction: Math.random() > 0.5 ? 1 : -1,
+      color: `rgba(${200 + Math.random() * 40}, ${40 + Math.random() * 60}, ${40 + Math.random() * 60}, ${0.35 + Math.random() * 0.4})`
+    }))
+  }, [])
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!heroRef.current || window.innerWidth < 768) return
+      const rect = heroRef.current.getBoundingClientRect()
+      const x = (e.clientX - rect.left) / rect.width
+      const y = (e.clientY - rect.top) / rect.height
+      setMouseX(x)
+      setMouseY(y)
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+
+  useEffect(() => {
+    // Check if spline viewer is available
+    const timer = setTimeout(() => {
+      if (window.customElements && window.customElements.get('spline-viewer')) {
+        setSplineLoaded(true)
+      }
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <div className="landing-page">
       {/* Hero Section */}
-      <section className="hero">
+      <section className="hero" ref={heroRef}>
+        {/* Animated gradient orbs background */}
+        <div className="hero-animated-bg">
+          <div className="orb orb-1"></div>
+          <div className="orb orb-2"></div>
+          <div className="orb orb-3"></div>
+        </div>
+
+        {/* Interactive particles */}
+        <div className="interactive-particles">
+          {particles.map((p) => (
+            <div
+              key={p.id}
+              className="antigravity-particle"
+              style={{
+                left: `${p.x}%`,
+                top: `${p.y}%`,
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                background: p.color,
+                transform: `translate(${(mouseX - 0.5) * p.speed * p.direction}px, ${(mouseY - 0.5) * p.speed * p.direction}px)`
+              }}
+            />
+          ))}
+        </div>
+        
         <div className="hero-container">
           <div className="hero-content">
             <div className="hero-badge">
@@ -168,21 +245,150 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="landing-footer">
+      {/* Comprehensive Footer - Ditto Style */}
+      <footer className="comprehensive-footer">
         <div className="container">
-          <div className="footer-content">
-            <div className="footer-brand">
-              <Shield size={28} />
-              <span>Insurex</span>
+          <div className="footer-grid">
+            {/* Brand Section with Character */}
+            <div className="footer-brand-section">
+              <div className="brand-with-mascot">
+                <div className="mascot-icon">
+                  <Shield size={48} />
+                </div>
+                <div className="brand-info">
+                  <h3 className="brand-name">
+                    <Shield size={24} />
+                    Insurex
+                  </h3>
+                  <p className="brand-tagline">
+                    With Insurex, you don't just upload bills. You understand them. 
+                    Navigate complex coverage, avoid pitfalls and make better decisions.
+                  </p>
+                </div>
+              </div>
+
+              {/* Contact Buttons */}
+              <div className="contact-actions">
+                <a href="tel:+918045680003" className="btn-contact primary">
+                  <Phone size={18} />
+                  Book a free call
+                </a>
+                <a href="https://wa.me/918045680003" className="btn-contact success" target="_blank" rel="noopener noreferrer">
+                  <MessageCircle size={18} />
+                  WhatsApp Us
+                </a>
+              </div>
+
+              {/* Contact Information */}
+              <div className="contact-info-block">
+                <h4>Need help?</h4>
+                
+                <div className="contact-item">
+                  <strong>General Support:</strong>
+                  <p>080-45680003 | <a href="mailto:help@insurex.in">help@insurex.in</a></p>
+                </div>
+
+                <div className="contact-item">
+                  <strong>Claims Assistance Only:</strong>
+                  <p>080-48816818 | <a href="mailto:claims@insurex.in">claims@insurex.in</a></p>
+                  <small className="text-muted">
+                    Please do not call this number for any other queries. 
+                    This is strictly for emergency usage.
+                  </small>
+                </div>
+
+                <div className="contact-item">
+                  <strong>Career Inquiries:</strong>
+                  <p><a href="mailto:careers@insurex.in">careers@insurex.in</a></p>
+                </div>
+              </div>
             </div>
-            <p className="footer-text">
-              Making healthcare insurance transparent for every Indian family.
-            </p>
-            <div className="footer-links">
-              <a href="#privacy">Privacy Policy</a>
-              <a href="#terms">Terms of Service</a>
-              <a href="#contact">Contact Us</a>
+
+            {/* Products Column */}
+            <div className="footer-column">
+              <h4 className="column-title">Products</h4>
+              <ul className="footer-links">
+                <li><Link to="/upload">Health Insurance</Link></li>
+                <li><Link to="/simulator">Term Insurance</Link></li>
+                <li><Link to="/family">Family Plans</Link></li>
+                <li><Link to="/dashboard">Coverage Analyzer</Link></li>
+              </ul>
+            </div>
+
+            {/* Tools Column */}
+            <div className="footer-column">
+              <h4 className="column-title">Tools</h4>
+              <ul className="footer-links">
+                <li><Link to="/dashboard">Understand your insurance</Link></li>
+                <li><Link to="/pre-hosp">Pre-hospitalization Guide</Link></li>
+                <li><Link to="/simulator">Coverage Simulator</Link></li>
+                <li><Link to="/hospitals">Find Network Hospitals</Link></li>
+                <li><Link to="/dashboard">AI Dispute Forecaster</Link></li>
+              </ul>
+            </div>
+
+            {/* Guides Column */}
+            <div className="footer-column">
+              <h4 className="column-title">Guides</h4>
+              <ul className="footer-links">
+                <li><Link to="/health-insurance-101">Health Insurance 101</Link></li>
+                <li><Link to="/term-insurance-101">Term Insurance 101</Link></li>
+                <li><Link to="/best-health-plans-2026">Best Health Plans 2026</Link></li>
+                <li><Link to="/compare-policies">Compare Policies</Link></li>
+                <li><Link to="/claim-process-guide">Claim Process Guide</Link></li>
+              </ul>
+            </div>
+
+            {/* General Column */}
+            <div className="footer-column">
+              <h4 className="column-title">General</h4>
+              <ul className="footer-links">
+                <li><Link to="/terms">Terms & Conditions</Link></li>
+                <li><Link to="/privacy">Privacy Policy</Link></li>
+                <li><Link to="/about">About Insurex</Link></li>
+                <li><Link to="/hospitals">Partner Insurers</Link></li>
+                <li><Link to="/contact">Claims Assistance</Link></li>
+                <li>
+                  <Link to="/contact">
+                    Careers <span className="hiring-badge">We are hiring</span>
+                  </Link>
+                </li>
+                <li><Link to="/contact">Contact Us</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Social Media Links */}
+          <div className="footer-social">
+            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+              <Youtube size={24} />
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+              <Twitter size={24} />
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <Linkedin size={24} />
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <Instagram size={24} />
+            </a>
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <Facebook size={24} />
+            </a>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="footer-bottom">
+            <div className="footer-legal">
+              <p>Insurex © 2021-2026. All Rights Reserved.</p>
+              <p className="legal-entity">Insurex Healthcare Solutions Private Limited</p>
+              <p className="legal-id">CIN: U74999KA2021PTC184423</p>
+            </div>
+            <div className="footer-disclaimer">
+              <strong>Disclaimer:</strong> The information on this website is provided for general 
+              informational purposes only as a service to the broader internet community. It does not 
+              constitute insurance or financial advice. Please consult with a certified insurance advisor 
+              before making policy decisions.
             </div>
           </div>
         </div>

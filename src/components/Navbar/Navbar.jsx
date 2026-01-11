@@ -8,7 +8,8 @@ import {
   User,
   Shield,
   Menu,
-  X
+  X,
+  Heart
 } from 'lucide-react'
 import { useState } from 'react'
 import './Navbar.css'
@@ -20,6 +21,7 @@ function Navbar() {
   const navLinks = [
     { path: '/upload', label: 'Upload', icon: Upload },
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/pre-hospitalization', label: 'Pre-Hosp', icon: Heart },
     { path: '/simulator', label: 'Simulator', icon: Calculator },
     { path: '/hospitals', label: 'Hospitals', icon: Building2 },
     { path: '/family', label: 'Family', icon: Users },

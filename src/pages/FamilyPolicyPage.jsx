@@ -1,9 +1,18 @@
 import { useState } from 'react'
-import { Users, AlertTriangle, CheckCircle, Plus, TrendingUp, UserPlus } from 'lucide-react'
+import { Users, AlertTriangle, CheckCircle, Plus, TrendingUp, UserPlus, X } from 'lucide-react'
 import './FamilyPolicyPage.css'
 
 function FamilyPolicyPage() {
   const [familyMembers, setFamilyMembers] = useState([])
+  const [showModal, setShowModal] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    relation: '',
+    age: '',
+    coverage: '',
+    used: '',
+    claims: ''
+  })
 
   const gaps = []
   const overlaps = []
@@ -11,6 +20,44 @@ function FamilyPolicyPage() {
   const totalCoverage = familyMembers.reduce((sum, member) => sum + member.coverage, 0)
   const totalUsed = familyMembers.reduce((sum, member) => sum + member.used, 0)
   const totalClaims = familyMembers.reduce((sum, member) => sum + member.claims, 0)
+
+  const handleOpenModal = () => {
+    setShowModal(true)
+    setFormData({
+      name: '',
+      relation: '',
+      age: '',
+      coverage: '',
+      used: '',
+      claims: ''
+    })
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    const newMember = {
+      id: Date.now(),
+      name: formData.name,
+      relation: formData.relation,
+      age: parseInt(formData.age),
+      coverage: parseInt(formData.coverage),
+      used: parseInt(formData.used || 0),
+      remaining: parseInt(formData.coverage) - parseInt(formData.used || 0),
+      status: (parseInt(formData.used || 0) / parseInt(formData.coverage)) > 0.9 ? 'warning' : 'active',
+      claims: parseInt(formData.claims || 0)
+    }
+    setFamilyMembers([...familyMembers, newMember])
+    setShowModal(false)
+  }
 
   return (
     <div className="family-policy-page">
@@ -22,7 +69,7 @@ function FamilyPolicyPage() {
               Track coverage for all family members in one place
             </p>
           </div>
-          <button className="btn btn-primary">
+          <button className="btn btn-primary" onClick={handleOpenModal}>
             <Plus size={18} />
             Add Family Member
           </button>
@@ -83,7 +130,7 @@ function FamilyPolicyPage() {
               <p className="empty-description">
                 Start by adding your family members to track their insurance coverage and claims in one place.
               </p>
-              <button className="btn btn-primary btn-large">
+              <button className="btn btn-primary btn-large" onClick={handleOpenModal}>
                 <Plus size={20} />
                 Add Your First Member
               </button>
@@ -236,6 +283,120 @@ function FamilyPolicyPage() {
         </div>
         )}
       </div>
+
+      {/* Add Member Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Add Family Member</h2>
+              <button className="modal-close" onClick={handleCloseModal}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="modal-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Full Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Enter full name"
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Relation *</label>
+                  <select
+                    name="relation"
+                    value={formData.relation}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Select relation</option>
+                    <option value="Self">Self</option>
+                    <option value="Spouse">Spouse</option>
+                    <option value="Son">Son</option>
+                    <option value="Daughter">Daughter</option>
+                    <option value="Father">Father</option>
+                    <option value="Mother">Mother</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Age *</label>
+                  <input
+                    type="number"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    placeholder="Enter age"
+                    min="0"
+                    max="120"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Coverage Amount (₹) *</label>
+                  <input
+                    type="number"
+                    name="coverage"
+                    value={formData.coverage}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 500000"
+                    min="0"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Amount Used (₹)</label>
+                  <input
+                    type="number"
+                    name="used"
+                    value={formData.used}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 45000"
+                    min="0"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Number of Claims</label>
+                  <input
+                    type="number"
+                    name="claims"
+                    value={formData.claims}
+                    onChange={handleInputChange}
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Plus size={18} />
+                  Add Member
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
