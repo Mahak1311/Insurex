@@ -45,9 +45,13 @@ function LandingPage() {
     }
   }, [])
 
-  // Generate antigravity-style particles
+  // Check if mobile device
+  const isMobile = window.innerWidth < 768
+
+  // Generate antigravity-style particles (only on desktop)
   const particles = useMemo(() => {
-    return Array.from({ length: 150 }, (_, i) => ({
+    if (isMobile) return [] // No particles on mobile
+    return Array.from({ length: 80 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,

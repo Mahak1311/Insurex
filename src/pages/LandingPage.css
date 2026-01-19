@@ -928,6 +928,17 @@
 }
 
 @media (max-width: 768px) {
+  /* Hide interactive particles on mobile for better performance */
+  .interactive-particles {
+    display: none;
+  }
+
+  /* Simplify orb animations on mobile */
+  .orb {
+    animation: none;
+    opacity: 0.2;
+  }
+
   .comprehensive-footer {
     padding: 40px 0 20px;
   }
