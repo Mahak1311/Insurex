@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { 
   PieChart, 
   Download, 
@@ -43,6 +43,28 @@ function DashboardPage() {
     diagnosticCoveragePercent: '',
     coPayPercent: ''
   })
+
+  // Load analysis from localStorage if available (from upload page)
+  useEffect(() => {
+    const savedAnalysis = localStorage.getItem('latestAnalysis')
+    if (savedAnalysis) {
+      try {
+        const data = JSON.parse(savedAnalysis)
+        if (data.billItems && data.policyRules) {
+          setBillItems(data.billItems)
+          setPolicyForm({
+            roomRentCapPerDay: String(data.policyRules.roomRentCapPerDay || ''),
+            coveredProceduresCSV: (data.policyRules.coveredProcedures || []).join(', '),
+            excludedItemsCSV: (data.policyRules.excludedItems || []).join(', '),
+            diagnosticCoveragePercent: String(data.policyRules.diagnosticCoveragePercent || ''),
+            coPayPercent: String(data.policyRules.coPayPercent || '')
+          })
+        }
+      } catch (err) {
+        console.error('Failed to load analysis:', err)
+      }
+    }
+  }, [])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target

@@ -18,7 +18,8 @@ import {
   Twitter,
   Linkedin,
   Instagram,
-  Youtube
+  Youtube,
+  User
 } from 'lucide-react'
 import './LandingPage.css'
 
@@ -26,7 +27,23 @@ function LandingPage() {
   const [mouseX, setMouseX] = useState(0.5)
   const [mouseY, setMouseY] = useState(0.5)
   const [splineLoaded, setSplineLoaded] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userName, setUserName] = useState('')
   const heroRef = useRef(null)
+
+  // Check login state
+  useEffect(() => {
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        const user = JSON.parse(userData)
+        setIsLoggedIn(true)
+        setUserName(user.name || 'User')
+      } catch (err) {
+        setIsLoggedIn(false)
+      }
+    }
+  }, [])
 
   // Generate antigravity-style particles
   const particles = useMemo(() => {
@@ -112,13 +129,28 @@ function LandingPage() {
               designed for trust.
             </p>
             <div className="hero-actions">
-              <Link to="/signup" className="btn btn-primary btn-large">
-                Upload Bill & Policy
-                <ArrowRight size={20} />
-              </Link>
-              <Link to="/simulator" className="btn btn-secondary btn-large">
-                Simulate Treatment Cost
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  <Link to="/upload" className="btn btn-primary btn-large">
+                    <User size={20} />
+                    Welcome, {userName}!
+                    <ArrowRight size={20} />
+                  </Link>
+                  <Link to="/dashboard" className="btn btn-secondary btn-large">
+                    View Dashboard
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/signup" className="btn btn-primary btn-large">
+                    Upload Bill & Policy
+                    <ArrowRight size={20} />
+                  </Link>
+                  <Link to="/simulator" className="btn btn-secondary btn-large">
+                    Simulate Treatment Cost
+                  </Link>
+                </>
+              )}
             </div>
             <div className="trust-badges">
               <div className="trust-badge">

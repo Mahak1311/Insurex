@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Shield, Mail, User, Phone, ArrowRight, Check } from 'lucide-react'
 import './AuthPages.css'
 
 function SignupPage() {
   const navigate = useNavigate()
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  const apiBase = import.meta.env.VITE_API_BASE || ''
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,6 +16,8 @@ function SignupPage() {
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
   const [otpSent, setOtpSent] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [otpMessage, setOtpMessage] = useState('')
 
   // Validation functions
   const validateName = (name) => {
@@ -106,7 +110,7 @@ function SignupPage() {
     return error
   }
 
-  const handleSendOTP = (e) => {
+  const handleSendOTP = async (e) => {
     e.preventDefault()
 
     // Mark all fields as touched
@@ -128,12 +132,43 @@ function SignupPage() {
       return // Don't proceed if validation fails
     }
 
-    // All validations passed - send OTP
-    console.log('Sending OTP to:', formData.phone)
-    setOtpSent(true)
+    // Send real OTP
+    setIsLoading(true)
+    setOtpMessage('')
+    try {
+      const response = await fetch(`${apiBase}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          phone: formData.phone,
+          name: formData.name
+        })
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send OTP')
+      }
+
+      setOtpSent(true)
+      setOtpMessage('OTP sent successfully! Check your email.')
+      
+      // Show debug OTP in development
+      if (data.debug?.otp) {
+        console.log('DEBUG OTP:', data.debug.otp)
+        alert(`Development Mode - Your OTP is: ${data.debug.otp}`)
+      }
+    } catch (error) {
+      setErrors({ ...errors, general: error.message })
+      alert(`Failed to send OTP: ${error.message}`)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault()
 
     // Mark OTP as touched
@@ -147,10 +182,111 @@ function SignupPage() {
       return // Don't proceed if validation fails
     }
 
-    // All validations passed - create account
-    console.log('Creating account for:', formData.name)
-    navigate('/upload')
+    // Verify OTP with backend
+    setIsLoading(true)
+    setOtpMessage('')
+    try {
+      const response = await fetch(`${apiBase}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          phone: formData.phone,
+          otp: formData.otp
+        })
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Invalid OTP')
+      }
+
+      // OTP verified - create account
+      const userData = {
+        id: 'user_' + Math.random().toString(36).substr(2, 9),
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        loginMethod: 'otp',
+        verifiedAt: new Date().toISOString()
+      }
+      localStorage.setItem('user', JSON.stringify(userData))
+      console.log('Account created for:', formData.name)
+      navigate('/upload')
+    } catch (error) {
+      setErrors({ ...errors, otp: error.message })
+      alert(`Verification failed: ${error.message}`)
+    } finally {
+      setIsLoading(false)
+    }
   }
+
+  // Load Google Identity Services script
+  useEffect(() => {
+    if (!googleClientId) return
+    const existing = document.querySelector('script[data-google-identity]')
+    if (existing) return
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.dataset.googleIdentity = 'true'
+    document.body.appendChild(script)
+  }, [googleClientId])
+
+  // Initialize Google button
+  useEffect(() => {
+    if (!googleClientId || otpSent) return
+    const maxAttempts = 20
+    let attempts = 0
+    const interval = setInterval(() => {
+      attempts++
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: async (resp) => {
+              if (!resp?.credential) return
+              try {
+                const verify = await fetch(`${apiBase}/api/auth/google`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ token: resp.credential })
+                })
+                const data = await verify.json()
+                if (!verify.ok) throw new Error(data?.error || 'Signup failed')
+                localStorage.setItem('user', JSON.stringify(data.user))
+                navigate('/upload')
+              } catch (err) {
+                alert(`Signup failed: ${err.message}`)
+              }
+            },
+            auto_select: false,
+          })
+
+          const container = document.getElementById('google-signup-button')
+          if (container) {
+            container.innerHTML = ''
+            window.google.accounts.id.renderButton(container, {
+              theme: 'outline',
+              size: 'large',
+              shape: 'pill',
+              width: 260,
+              text: 'signup_with'
+            })
+          }
+          clearInterval(interval)
+        } catch (err) {
+          console.error('Google initialization error:', err.message)
+        }
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval)
+      }
+    }, 300)
+
+    return () => clearInterval(interval)
+  }, [googleClientId, apiBase, navigate, otpSent])
 
   return (
     <div className="auth-page">
@@ -223,6 +359,18 @@ function SignupPage() {
             {otpSent && (
               <div className="form-group">
                 <label>Enter OTP</label>
+                {otpMessage && (
+                  <div style={{ 
+                    padding: '10px', 
+                    marginBottom: '10px', 
+                    backgroundColor: '#dcfce7', 
+                    color: '#166534', 
+                    borderRadius: '6px',
+                    fontSize: '14px'
+                  }}>
+                    {otpMessage}
+                  </div>
+                )}
                 <input
                   type="text"
                   name="otp"
@@ -239,14 +387,23 @@ function SignupPage() {
                 {errors.otp && touched.otp && (
                   <span className="error-message">{errors.otp}</span>
                 )}
-                <button type="button" className="resend-link">
-                  Resend OTP
+                <button 
+                  type="button" 
+                  className="resend-link"
+                  onClick={handleSendOTP}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Sending...' : 'Resend OTP'}
                 </button>
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary btn-large auth-submit">
-              {otpSent ? 'Verify & Create Account' : 'Send OTP'}
+            <button 
+              type="submit" 
+              className="btn btn-primary btn-large auth-submit"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Processing...' : (otpSent ? 'Verify & Create Account' : 'Send OTP')}
               <ArrowRight size={20} />
             </button>
           </form>
@@ -258,15 +415,30 @@ function SignupPage() {
               </div>
 
               <div className="social-auth">
-                <button className="btn-social">
+                <div id="google-signup-button" className="btn-social google-btn-placeholder">
                   <img src="https://www.google.com/favicon.ico" alt="Google" />
                   Sign up with Google
-                </button>
-                <button className="btn-social">
+                </div>
+                <button 
+                  className="btn-social"
+                  onClick={() => {
+                    // Gmail signup - same as regular email/phone OTP flow
+                    // Just scroll to form or highlight email field
+                    document.querySelector('input[name="email"]')?.focus()
+                  }}
+                  type="button"
+                >
                   <Mail size={20} />
                   Sign up with Gmail
                 </button>
-                <button className="btn-social" onClick={() => setOtpSent(true)}>
+                <button 
+                  className="btn-social" 
+                  onClick={() => {
+                    // Phone signup - jump to OTP flow
+                    document.querySelector('input[name="phone"]')?.focus()
+                  }}
+                  type="button"
+                >
                   <Phone size={20} />
                   Sign up with Phone Number
                 </button>

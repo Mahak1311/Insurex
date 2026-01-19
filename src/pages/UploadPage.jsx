@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, Image, Camera, Shield, CheckCircle, Loader } from 'lucide-react'
+import { analyzeCoverage } from '../lib/coverageEngine'
 import './UploadPage.css'
 
 function UploadPage() {
@@ -11,6 +12,7 @@ function UploadPage() {
     policy: null
   })
   const [processing, setProcessing] = useState(false)
+  const [error, setError] = useState(null)
   const cameraInputBillRef = useRef(null)
   const galleryInputBillRef = useRef(null)
   const cameraInputPolicyRef = useRef(null)
@@ -42,11 +44,53 @@ function UploadPage() {
     }
   }
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     setProcessing(true)
-    setTimeout(() => {
-      navigate('/dashboard')
-    }, 2000)
+    setError(null)
+    
+    try {
+      // Simulate OCR/text extraction from uploaded files
+      // In a real app, you'd send files to a backend OCR service
+      
+      // Mock policy rules
+      const policyRules = {
+        roomRentCapPerDay: 5000,
+        coveredProcedures: ['Appendectomy', 'Cataract Surgery', 'Knee Replacement'],
+        excludedItems: ['Cosmetic Surgery'],
+        diagnosticCoveragePercent: 100,
+        coPayPercent: 10
+      }
+
+      // Mock bill items
+      const billItems = [
+        { name: 'Room Charges', category: 'room', cost: 50000, days: 5 },
+        { name: 'Surgery - Appendectomy', category: 'procedure', cost: 70000, days: 1 },
+        { name: 'Medicine', category: 'medicine', cost: 20000, days: 1 },
+        { name: 'X-Ray', category: 'diagnostic', cost: 5000, days: 1 },
+        { name: 'Blood Test', category: 'diagnostic', cost: 5000, days: 1 }
+      ]
+
+      // Use the coverage engine to analyze
+      const analysis = analyzeCoverage(policyRules, billItems)
+      
+      // Store the analysis result in localStorage so dashboard can access it
+      localStorage.setItem('latestAnalysis', JSON.stringify({
+        ...analysis,
+        policyRules,
+        billItems,
+        uploadDate: new Date().toISOString()
+      }))
+
+      // Wait a bit to show processing animation
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Navigate to dashboard with the results
+      navigate('/dashboard', { state: { analysisComplete: true } })
+    } catch (err) {
+      console.error('Analysis error:', err)
+      setError('Failed to analyze documents. Please try again.')
+      setProcessing(false)
+    }
   }
 
   return (
@@ -241,6 +285,11 @@ function UploadPage() {
 
         {/* Analyze Button */}
         <div className="upload-actions">
+          {error && (
+            <div className="error-message" style={{ marginBottom: '1rem', padding: '1rem', background: '#fee', borderRadius: '8px', color: '#c33' }}>
+              {error}
+            </div>
+          )}
           <button
             className="btn btn-primary btn-large"
             disabled={!uploadedFiles.bill || !uploadedFiles.policy || processing}

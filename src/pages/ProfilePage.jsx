@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { User, Mail, Phone, MapPin, Shield, Bell, Globe, LogOut, X, Check, Volume2, VolumeX, Eye, EyeOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import './ProfilePage.css'
@@ -6,14 +6,39 @@ import './ProfilePage.css'
 function ProfilePage() {
   const navigate = useNavigate()
   
+  // Load user data from localStorage
+  const getUserData = () => {
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        const user = JSON.parse(userData)
+        return {
+          name: user.name || 'User',
+          email: user.email || '',
+          phone: user.phone || user.phoneNumber || '',
+          location: user.location || 'India',
+          policyNumber: user.policyNumber || 'Not provided'
+        }
+      } catch (err) {
+        console.error('Error loading user data:', err)
+      }
+    }
+    return {
+      name: 'Rajesh Kumar',
+      email: 'rajesh.kumar@example.com',
+      phone: '+91 98765 43210',
+      location: 'India',
+      policyNumber: 'POL-2024-456789'
+    }
+  }
+
   // State management
-  const [profileData, setProfileData] = useState({
-    name: 'Rajesh Kumar',
-    email: 'rajesh.kumar@example.com',
-    phone: '+91 98765 43210',
-    location: 'New Delhi, India',
-    policyNumber: 'POL-2024-456789'
-  })
+  const [profileData, setProfileData] = useState(getUserData())
+
+  // Update profile data when component mounts or user changes
+  useEffect(() => {
+    setProfileData(getUserData())
+  }, [])
 
   const [notifications, setNotifications] = useState({
     email: true,

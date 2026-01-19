@@ -3,6 +3,7 @@ import cors from 'cors';
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { OAuth2Client } from 'google-auth-library';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
@@ -13,6 +14,147 @@ const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : nul
 
 app.use(cors());
 app.use(express.json());
+
+// In-memory OTP storage (use Redis in production)
+const otpStore = new Map();
+
+// Configure email transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+// Generate 6-digit OTP
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Clean up expired OTPs
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of otpStore.entries()) {
+        if (now > value.expiry) {
+            otpStore.delete(key);
+        }
+    }
+}, 60000); // Clean every minute
+
+// Send OTP endpoint
+app.post('/api/auth/send-otp', async (req, res) => {
+    try {
+        const { email, phone, name } = req.body;
+        
+        if (!email || !phone) {
+            return res.status(400).json({ error: 'Email and phone are required' });
+        }
+
+        // Generate OTP
+        const otp = generateOTP();
+        const key = `${email}:${phone}`;
+        
+        // Store OTP with 5-minute expiry
+        otpStore.set(key, {
+            otp,
+            expiry: Date.now() + 5 * 60 * 1000,
+            attempts: 0
+        });
+
+        // Send email
+        try {
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'Your Insurex Verification Code',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #ef4444;">Insurex - Verify Your Account</h2>
+                        <p>Hi ${name},</p>
+                        <p>Your verification code is:</p>
+                        <div style="background: #f3f4f6; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ef4444; border-radius: 8px; margin: 20px 0;">
+                            ${otp}
+                        </div>
+                        <p>This code will expire in 5 minutes.</p>
+                        <p>If you didn't request this code, please ignore this email.</p>
+                        <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+                            This is an automated message from Insurex. Please do not reply to this email.
+                        </p>
+                    </div>
+                `
+            });
+
+            console.log(`OTP sent to ${email}: ${otp}`); // Remove in production
+            
+            return res.json({ 
+                success: true, 
+                message: 'OTP sent successfully',
+                // For testing only - remove in production:
+                debug: process.env.NODE_ENV === 'development' ? { otp } : undefined
+            });
+        } catch (emailError) {
+            console.error('Email sending failed:', emailError.message);
+            return res.status(500).json({ 
+                error: 'Failed to send OTP email. Please check your email address.',
+                details: emailError.message 
+            });
+        }
+    } catch (err) {
+        console.error('Send OTP error:', err.message);
+        return res.status(500).json({ error: 'Failed to send OTP' });
+    }
+});
+
+// Verify OTP endpoint
+app.post('/api/auth/verify-otp', async (req, res) => {
+    try {
+        const { email, phone, otp } = req.body;
+        
+        if (!email || !phone || !otp) {
+            return res.status(400).json({ error: 'Email, phone, and OTP are required' });
+        }
+
+        const key = `${email}:${phone}`;
+        const stored = otpStore.get(key);
+
+        if (!stored) {
+            return res.status(400).json({ error: 'OTP expired or not found. Please request a new one.' });
+        }
+
+        // Check expiry
+        if (Date.now() > stored.expiry) {
+            otpStore.delete(key);
+            return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
+        }
+
+        // Check attempts (prevent brute force)
+        if (stored.attempts >= 3) {
+            otpStore.delete(key);
+            return res.status(400).json({ error: 'Too many failed attempts. Please request a new OTP.' });
+        }
+
+        // Verify OTP
+        if (stored.otp !== otp) {
+            stored.attempts++;
+            return res.status(400).json({ 
+                error: 'Invalid OTP. Please try again.',
+                attemptsLeft: 3 - stored.attempts
+            });
+        }
+
+        // OTP verified successfully - delete it
+        otpStore.delete(key);
+        
+        return res.json({ 
+            success: true, 
+            message: 'OTP verified successfully' 
+        });
+    } catch (err) {
+        console.error('Verify OTP error:', err.message);
+        return res.status(500).json({ error: 'Failed to verify OTP' });
+    }
+});
 
 // Google OAuth verification
 app.post('/api/auth/google', async (req, res) => {
