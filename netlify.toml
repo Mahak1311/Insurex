@@ -15,6 +15,16 @@
   status = 200
 
 [[redirects]]
+  from = "/api/auth/send-otp"
+  to = "/.netlify/functions/send-otp"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth/verify-otp"
+  to = "/.netlify/functions/verify-otp"
+  status = 200
+
+[[redirects]]
   from = "/api/hospitals"
   to = "/.netlify/functions/hospitals"
   status = 200
