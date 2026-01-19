@@ -1,0 +1,26 @@
+# Netlify Configuration File
+
+[build]
+  # Build command for Vite
+  command = "npm run build"
+  # Output directory where Vite builds to
+  publish = "dist"
+  # Functions directory
+  functions = "netlify/functions"
+
+# Redirect API calls to Netlify Functions (serverless backend)
+[[redirects]]
+  from = "/api/auth/google"
+  to = "/.netlify/functions/google-auth"
+  status = 200
+
+# SPA fallback - redirect all routes to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment variables (these are build-time only)
+# For sensitive values, set them in Netlify dashboard instead
+[build.environment]
+  NODE_VERSION = "18"
