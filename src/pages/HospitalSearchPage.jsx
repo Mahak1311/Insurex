@@ -148,8 +148,16 @@ function HospitalSearchPage() {
     setLoading(true)
     setPincodeError('')
     try {
+      console.log('Fetching hospitals from:', `${apiBase}/api/hospitals?pincode=${pincode}`)
       const response = await fetch(`${apiBase}/api/hospitals?pincode=${pincode}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const data = await response.json()
+      console.log('Received data:', data)
+      
       const mapped = mapHospitals(data?.hospitals || [])
       if (mapped.length) {
         setHospitals(mapped)
@@ -158,10 +166,8 @@ function HospitalSearchPage() {
       }
     } catch (error) {
       console.error('Error fetching hospitals:', error)
+      setPincodeError(`Failed to fetch hospitals: ${error.message}`)
       useFallbackHospitals(pincode)
-      if (!fallbackHospitalsByPincode[pincode]?.length) {
-        setPincodeError('Failed to fetch hospitals. Please try again.')
-      }
     } finally {
       setLoading(false)
     }
