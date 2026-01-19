@@ -73,7 +73,7 @@ const buildDetailsUrl = (hospital) => {
 }
 
 function HospitalSearchPage() {
-  const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:5000'
+  const apiBase = import.meta.env.VITE_API_BASE || ''
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     pincode: '',
