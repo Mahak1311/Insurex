@@ -73,6 +73,7 @@ const buildDetailsUrl = (hospital) => {
 }
 
 function HospitalSearchPage() {
+  const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:5000'
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     pincode: '',
@@ -147,7 +148,7 @@ function HospitalSearchPage() {
     setLoading(true)
     setPincodeError('')
     try {
-      const response = await fetch(`http://localhost:5000/api/hospitals?pincode=${pincode}`)
+      const response = await fetch(`${apiBase}/api/hospitals?pincode=${pincode}`)
       const data = await response.json()
       const mapped = mapHospitals(data?.hospitals || [])
       if (mapped.length) {
